@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>분류 방식 선택</title>
+  <style>
+    body { min-width:220px; font-family:sans-serif; }
+    .option-row { margin:10px 0; }
+    .edit-btn { display:inline-block; margin:12px 0; padding:4px 14px; background:#1976d2; color:#fff; border:none; border-radius:5px; cursor:pointer; font-size:13px; }
+  </style>
+</head>
+<body>
+  <h3>분류 방식 선택</h3>
+  <div class="option-row">
+    <label>
+      <input type="radio" name="mode" value="keyword" checked /> 키워드 기반
+    </label>
+    <label style="margin-left:18px;">
+      <input type="radio" name="mode" value="ml" /> 머신러닝 기반
+    </label>
+  </div>
+  <button class="edit-btn" id="editKeywordsBtn">키워드/카테고리 편집</button>
+  <script src="dist/popup.js"></script>
+</body>
+</html>

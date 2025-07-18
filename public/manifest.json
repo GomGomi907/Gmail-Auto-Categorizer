@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Gmail Auto Categorizer",
+  "version": "1.0",
+  "description": "Gmail 메일 자동 분류 및 커스터마이즈",
+  "permissions": ["storage", "scripting"],
+  "host_permissions": ["https://mail.google.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["dist/content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html"
+}

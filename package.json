@@ -1,0 +1,21 @@
+{
+  "name": "gamil_organize",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/*.ts --bundle --outdir=public/dist --format=esm --target=chrome114",
+    "watch": "esbuild src/*.ts --bundle --outdir=public/dist --format=esm --target=chrome114 --watch"
+  },
+  
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/chrome": "^0.1.1",
+    "@types/node": "^24.0.14",
+    "esbuild": "^0.25.6",
+    "typescript": "^5.8.3"
+  }
+}
