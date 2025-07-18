@@ -1,4 +1,6 @@
 import { KeywordMap, Mode, defaultKeywords } from "./types";
+import { defaultCategoryList, defaultCategoryColors } from "./types";
+
 
 /**
  * chrome.storage.local에서 키워드 맵(keywordMap)을 불러온다.
@@ -22,8 +24,26 @@ function addCategoryBadge(mailElem: Element, category: string) {
   const badge = document.createElement("span");
   badge.className = "category-badge";
   badge.textContent = category;
-  badge.style.cssText =
-    "margin-left: 8px; color: white; border-radius: 8px; background:#1976d2; padding:2px 8px; font-size:12px;";
+  // --- 카테고리별 색상 동적 적용 ---
+  const color = defaultCategoryColors[category] || "#1976d2";
+  badge.style.background = color;
+  badge.style.color = "#fff";
+  badge.style.marginLeft = "8px";
+  badge.style.borderRadius = "8px";
+  badge.style.padding = "2px 8px";
+  badge.style.fontSize = "12px";
+  // ---------------------------------
+  badge.style.cssText = `
+    margin-left: 8px;
+    color: white;
+    border-radius: 8px;
+    background: ${color};
+    padding: 2px 8px;
+    font-size: 12px;
+  `;
+  badge.classList.add("category-badge");
+  // 메일 제목(bog) 요소에 배지 추가
+  // (Gmail DOM 구조에 따라 다를 수 있음)
   const subjectElem = mailElem.querySelector(".bog");
   if (subjectElem) subjectElem.appendChild(badge);
 }

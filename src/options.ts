@@ -1,4 +1,11 @@
 import { KeywordMap, Mode, defaultKeywords } from "./types";
+import { defaultCategoryList, defaultCategoryColors } from "./types";
+
+/**
+ * chrome.storage.local에서 키워드 맵(keywordMap)을 불러온다.
+ * 값이 없으면 기본값(defaultKeywords)을 사용한다.
+ * @param cb - 키워드 맵을 인자로 받는 콜백 함수
+ */
 
 /**
  * chrome.storage.local에서 keywordMap을 불러와 콜백(cb)으로 전달한다.
@@ -47,6 +54,15 @@ function renderCategoryList(map: KeywordMap) {
       const badge = document.createElement("span");
       badge.className = "badge";
       badge.textContent = kw;
+      // --- 카테고리별 색상 동적 적용 ---
+      const color = defaultCategoryColors[cat] || "#1976d2";
+      badge.style.background = color;
+      badge.style.color = "#fff";
+      badge.style.margin = "2px";
+      badge.style.borderRadius = "8px";
+      badge.style.padding = "2px 8px";
+      badge.style.fontSize = "12px";
+      // ---------------------------------
       const rm = document.createElement("span");
       rm.className = "remove-btn";
       rm.textContent = "×";

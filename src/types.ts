@@ -49,7 +49,7 @@ export const defaultCategoryList = ["광고/이벤트", "소셜", "업무", "개
  * 각 카테고리별 배경색(hex 코드)
  */
 export const defaultCategoryColors: { [cat: string]: string } = {
-  "광고/이벤트": "#ffeb3b",
+  "광고/이벤트": "#83781bff",
   소셜: "#03a9f4",
   업무: "#8bc34a",
   개인: "#e91e63",
