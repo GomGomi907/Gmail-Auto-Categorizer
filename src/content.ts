@@ -1,6 +1,20 @@
 import { CategoryMap, defaultCategoryMap } from "./types";
 
 /**
+ * 현재 접속한 서비스가 Gmail인지 판별
+ */
+function isGoogle(): boolean {
+  return location.hostname.includes("mail.google.com");
+}
+
+/**
+ * 현재 접속한 서비스가 Naver인지 판별
+ */
+function isNaver(): boolean {
+  return location.hostname.includes("naver.com");
+}
+
+/**
  * storage에서 CategoryMap을 불러옴. 없으면 defaultCategoryMap 사용.
  */
 function getCategoryMap(cb: (map: CategoryMap) => void) {
@@ -10,7 +24,7 @@ function getCategoryMap(cb: (map: CategoryMap) => void) {
 }
 
 /**
- * 키워드 기반 분류 함수: 카테고리별 키워드가 하나라도 포함되면 해당 카테고리로 분류.
+ * 키워드 기반 분류 함수
  */
 function keywordCategorize(subject: string, sender: string, body: string, map: CategoryMap): string {
   for (const [cat, meta] of Object.entries(map)) {
@@ -22,23 +36,23 @@ function keywordCategorize(subject: string, sender: string, body: string, map: C
 }
 
 /**
- * (예시) ML 기반 분류 함수 - 추후 확장 가능.
+ * ML 기반 분류 함수 (임시 로직)
  */
 function mlCategorize(subject: string, sender: string, body: string): string {
-  // 예: "!"가 많으면 광고로 분류 (임시 로직)
   if ((subject + body).split("!").length > 4) return "광고/이벤트";
   return "일반";
 }
 
 /**
- * 메일 행(tr.zA)에 카테고리 뱃지를 붙인다.
+ * 카테고리 뱃지를 생성해서 제목 요소에 삽입
  */
-function addCategoryBadge(mailElem: Element, category: string, map: CategoryMap) {
-  if (mailElem.querySelector(".category-badge")) return;
+function addCategoryBadge(targetElem: Element, category: string, map: CategoryMap) {
+  if (targetElem.querySelector(".category-badge")) return;
+
   const badge = document.createElement("span");
   badge.className = "category-badge";
   badge.textContent = category;
-  // 카테고리별 색상 적용
+
   const color = map[category]?.color || "#1976d2";
   badge.style.background = color;
   badge.style.color = "#fff";
@@ -47,17 +61,18 @@ function addCategoryBadge(mailElem: Element, category: string, map: CategoryMap)
   badge.style.padding = "2px 8px";
   badge.style.fontSize = "12px";
   badge.style.fontWeight = "bold";
-  const subjectElem = mailElem.querySelector(".bog");
-  if (subjectElem) subjectElem.appendChild(badge);
+
+  targetElem.appendChild(badge);
 }
 
 /**
- * 현재 화면의 메일(tr.zA)들을 순회하며 분류 & 뱃지 표시.
+ * Gmail 메일 목록 분류 처리
  */
-function scanAndCategorizeMails(mode: "keyword" | "ml", map: CategoryMap) {
+function scanGmailMails(mode: "keyword" | "ml", map: CategoryMap) {
   const mailRows = document.querySelectorAll("tr.zA");
   mailRows.forEach(row => {
-    const subject = row.querySelector(".bog")?.textContent ?? "";
+    const subjectElem = row.querySelector(".bog");
+    const subject = subjectElem?.textContent ?? "";
     const sender = row.querySelector(".yX.xY .yP, .yW .yP")?.textContent ?? "";
     const snippet = row.querySelector(".y2")?.textContent ?? "";
 
@@ -67,12 +82,50 @@ function scanAndCategorizeMails(mode: "keyword" | "ml", map: CategoryMap) {
     } else if (mode === "ml") {
       category = mlCategorize(subject, sender, snippet);
     }
-    addCategoryBadge(row, category, map);
+
+    if (subjectElem?.parentElement) {
+      addCategoryBadge(subjectElem.parentElement, category, map);
+    }
   });
 }
 
 /**
- * storage에서 mode/categoryMap을 불러와 메일 분류 실행.
+ * Naver 메일 목록 분류 처리
+ */
+function scanNaverMails(mode: "keyword" | "ml", map: CategoryMap) {
+  const mailRows = document.querySelectorAll("li.mail_item");
+  mailRows.forEach(row => {
+    const subjectElem = row.querySelector(".mail_inner");
+    const subject = subjectElem?.textContent?.trim() || "";
+    const sender = row.querySelector(".mail_sender")?.textContent?.trim() || "";
+    const snippet = "";
+
+    let category = "일반";
+    if (mode === "keyword") {
+      category = keywordCategorize(subject, sender, snippet, map);
+    } else if (mode === "ml") {
+      category = mlCategorize(subject, sender, snippet);
+    }
+
+    if (subjectElem) {
+      addCategoryBadge(subjectElem, category, map);
+    }
+  });
+}
+
+/**
+ * 현재 페이지에 맞는 분류 실행
+ */
+function scanAndCategorizeMails(mode: "keyword" | "ml", map: CategoryMap) {
+  if (isGoogle()) {
+    scanGmailMails(mode, map);
+  } else if (isNaver()) {
+    scanNaverMails(mode, map);
+  }
+}
+
+/**
+ * storage에서 설정값을 불러와 분류 실행
  */
 function startCategorizer() {
   chrome.storage.local.get(["mode", "categoryMap"], data => {
@@ -82,17 +135,48 @@ function startCategorizer() {
   });
 }
 
-// Gmail DOM 변화 감지 → 자동 재분류
-const observer = new MutationObserver(() => {
-  startCategorizer();
-});
-observer.observe(document.body, { childList: true, subtree: true });
+/**
+ * MutationObserver 설정
+ */
+let observer: MutationObserver | null = null;
+function setupObserver() {
+  if (observer) observer.disconnect();
 
-// 최초 1회 실행
+  const target = isGoogle()
+    ? document.querySelector(".Cp") ?? document.body
+    : document.body;
+
+  observer = new MutationObserver(() => {
+    setTimeout(() => {
+      startCategorizer();
+    }, 500); // 렌더 완료 대기
+  });
+
+  observer.observe(target, { childList: true, subtree: true });
+}
+
+/**
+ * 최초 실행
+ */
 startCategorizer();
+setupObserver();
 
-// storage 변경시 재분류
-chrome.storage.onChanged.addListener(changes => {
+/**
+ * SPA 페이지 전환 감지
+ */
+let lastUrl = location.href;
+setInterval(() => {
+  if (location.href !== lastUrl) {
+    lastUrl = location.href;
+    setupObserver();
+    startCategorizer();
+  }
+}, 1000);
+
+/**
+ * storage 변경 감지
+ */
+chrome.storage.onChanged.addListener((changes) => {
   if (changes.mode || changes.categoryMap) {
     startCategorizer();
   }
