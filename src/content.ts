@@ -78,7 +78,7 @@ function scanGmailMails(mode: "keyword" | "ml", map: CategoryMap) {
 
     let category = "일반";
     if (mode === "keyword") {
-      category = keywordCategorize(subject, sender, "", map);
+      category = keywordCategorize(subject, sender, snippet, map);
     } else if (mode === "ml") {
       category = mlCategorize(subject, sender, snippet);
     }
@@ -102,7 +102,7 @@ function scanNaverMails(mode: "keyword" | "ml", map: CategoryMap) {
 
     let category = "일반";
     if (mode === "keyword") {
-      category = keywordCategorize(subject, sender, "", map);
+      category = keywordCategorize(subject, sender, snippet, map);
     } else if (mode === "ml") {
       category = mlCategorize(subject, sender, snippet);
     }
