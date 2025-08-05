@@ -24,15 +24,34 @@ function getCategoryMap(cb: (map: CategoryMap) => void) {
 }
 
 /**
- * 키워드 기반 분류 함수
+ * 본문에서 키워드를 추출
+ * 간단히 공백/특수문자로 분리 후 2글자 이상인 토큰만 반환
+ */
+function extractKeywords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(token => token.length > 1);
+}
+
+/**
+ * 키워드 추출 후 맥락을 이용한 분류 함수
  */
 function keywordCategorize(subject: string, sender: string, body: string, map: CategoryMap): string {
+  const keywords = extractKeywords(`${subject} ${body}`);
+  let bestCategory = "일반";
+  let bestScore = 0;
+
   for (const [cat, meta] of Object.entries(map)) {
-    if (meta.keywords.some(kw => subject.includes(kw) || body.includes(kw))) {
-      return cat;
+    const score = meta.keywords.reduce((acc, kw) => acc + (keywords.includes(kw.toLowerCase()) ? 1 : 0), 0);
+    if (score > bestScore) {
+      bestScore = score;
+      bestCategory = cat;
     }
   }
-  return "일반";
+
+  return bestCategory;
 }
 
 /**
@@ -78,7 +97,7 @@ function scanGmailMails(mode: "keyword" | "ml", map: CategoryMap) {
 
     let category = "일반";
     if (mode === "keyword") {
-      category = keywordCategorize(subject, sender, "", map);
+      category = keywordCategorize(subject, sender, snippet, map);
     } else if (mode === "ml") {
       category = mlCategorize(subject, sender, snippet);
     }
@@ -98,11 +117,11 @@ function scanNaverMails(mode: "keyword" | "ml", map: CategoryMap) {
     const subjectElem = row.querySelector(".mail_inner");
     const subject = subjectElem?.textContent?.trim() || "";
     const sender = row.querySelector(".mail_sender")?.textContent?.trim() || "";
-    const snippet = "";
+    const snippet = row.querySelector(".mail_text, .mail_preview")?.textContent?.trim() || "";
 
     let category = "일반";
     if (mode === "keyword") {
-      category = keywordCategorize(subject, sender, "", map);
+      category = keywordCategorize(subject, sender, snippet, map);
     } else if (mode === "ml") {
       category = mlCategorize(subject, sender, snippet);
     }
