@@ -1,0 +1,13 @@
+text,label
+"Hey John, are we still on for lunch tomorrow?","personal"
+"Don't forget to submit the TPS report by Friday.","personal"
+"Can you review the attached document when you have time?","personal"
+"Looking forward to our meeting next week.","personal"
+"Huge sale this weekend on all electronics!","promotions"
+"Get 50% off your next purchase with this coupon.","promotions"
+"Limited time offer: buy one get one free.","promotions"
+"Special discount just for you—shop today!","promotions"
+"Your order has shipped and will arrive tomorrow.","updates"
+"Security alert: new login to your account detected.","updates"
+"Your subscription has been renewed successfully.","updates"
+"Package delivered: thank you for shopping with us.","updates"
